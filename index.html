@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>أبطال الشطرنج الصغار</title>
+<style>
+:root{--bg:#fff7e6;--ink:#3b2a1a;--card:#fff;--l:#fde7b0;--d:#e0a458;--acc:#7c5cff;--ok:#2ecc71;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1f1a2e;--ink:#fff3dc;--card:#2d2644;--l:#d9c7a3;--d:#8b6b3d}}
+:root[data-theme="dark"]{--bg:#1f1a2e;--ink:#fff3dc;--card:#2d2644;--l:#d9c7a3;--d:#8b6b3d}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,"Segoe UI",Tahoma,sans-serif;text-align:center}
+h1{font-size:1.4rem;margin:.6rem 0 .2rem}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:.5rem}
+button{font:inherit;border:0;border-radius:16px;padding:.6rem 1rem;background:var(--card);color:var(--ink);box-shadow:0 2px 0 rgba(0,0,0,.2)}
+button.on{background:var(--acc);color:#fff}
+.wrap{max-width:440px;margin:0 auto;padding:0 8px 24px}
+#board{direction:ltr;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));grid-template-rows:repeat(8,minmax(0,1fr));flex:1;min-width:0;aspect-ratio:1;border:4px solid var(--d);border-radius:10px;overflow:hidden}
+.bw{direction:ltr;display:flex;gap:6px;margin:.3rem 0;align-items:flex-start}
+#evb{width:22px;align-self:stretch;border-radius:8px;overflow:hidden;background:#222;position:relative;border:2px solid var(--d)}
+#evf{position:absolute;left:0;right:0;bottom:0;background:#fff;height:50%;transition:height .4s}
+.lost{direction:rtl;min-height:2.2rem;font-size:1.5rem;padding:2px 8px;background:var(--card);border-radius:10px;display:flex;gap:2px;align-items:center;flex-wrap:wrap;margin:.2rem 0}
+.lost:empty{display:none}
+.lost small{font-size:.85rem;margin-inline-end:6px}
+.acc{min-height:2.4rem;font-size:1.05rem;margin:.3rem 0}
+.sq{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:min(9.6vw,42px);line-height:1;user-select:none;font-family:"Noto Sans Symbols 2","Segoe UI Symbol","DejaVu Sans",sans-serif}
+.sq.l{background:var(--l)}.sq.d{background:var(--d)}
+.sq.sel{outline:4px solid var(--acc);outline-offset:-4px}
+.sq.dot::after{content:"";width:34%;height:34%;border-radius:50%;background:rgba(46,204,113,.85);position:absolute}
+.sq.cap::after{width:86%;height:86%;background:none;border:4px solid rgba(231,76,60,.9)}
+.sq.star::before{content:"⭐";position:absolute;font-size:70%}
+.sq.chk{background:#ff8a80}
+.w{color:#fff;text-shadow:1px 0 #000,-1px 0 #000,0 1px #000,0 -1px #000,0 0 4px #000,0 0 3px #000}
+.b{color:#111;text-shadow:0 0 2px #fff,0 0 1px #fff}
+.msg{min-height:3.2rem;font-size:1.15rem;margin:.3rem 0}
+.row{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.stars{font-size:1.2rem}
+#pbar{height:10px;background:var(--card);border-radius:8px;overflow:hidden;margin:4px auto;max-width:300px}
+#pfill{display:block;height:100%;background:var(--ok);width:0;transition:width .5s}
+.toast{position:fixed;left:50%;top:22%;transform:translateX(-50%);background:var(--acc);color:#fff;padding:.7rem 1.2rem;border-radius:20px;font-size:1.3rem;z-index:9;animation:up 1.8s forwards;white-space:nowrap}
+@keyframes up{to{opacity:0;top:14%}}
+#bp{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:8;align-items:center;justify-content:center;padding:16px}
+#bp.on{display:flex}
+#bp .card{background:var(--bg);color:var(--ink);border-radius:20px;padding:14px;max-width:380px;width:100%;max-height:80vh;overflow:auto}
+.bg{display:flex;align-items:center;gap:10px;text-align:right;padding:6px;opacity:.4}
+.bg.got{opacity:1}
+.bg i{font-size:1.8rem;font-style:normal}
+</style>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#7c5cff">
+<link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon-192.png">
+</head>
+<body>
+<div class="wrap">
+<h1>♞ أبطال الشطرنج الصغار</h1>
+<div id="sfst" style="font-size:.85rem;opacity:.8">🧠 المحرّك: جاري التحميل...</div>
+<div class="stars">⭐ <b id="stars">0</b> &nbsp; 💎 <b id="pts">0</b> &nbsp; <span id="rank"></span></div>
+<div id="pbar"><i id="pfill"></i></div>
+<button id="bd">🏅 شاراتي</button><div id="bp"></div>
+<div class="tabs"><button id="t1" class="on">♟ القطع</button><button id="t2">🎮 العب</button><button id="t3">🧩 تحدّيات</button><button id="t4">📖 دروس</button><button id="t5">🚀 فتحات</button><button id="t6">🏁 نهايات</button></div>
+<div class="row" id="pieces"></div>
+<div class="msg" id="msg"></div>
+<div class="lost" id="lt"></div>
+<div class="bw"><div id="evb"><div id="evf"></div></div><div id="board"></div></div>
+<div class="lost" id="lb"></div>
+<div class="acc" id="acc"></div>
+<div class="row" id="ctrl"></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<script>window.Chess||document.write('<script src="chess.min.js"><\/script>')</script>
+<script>
+const G={k:'♚\uFE0E',q:'♛\uFE0E',r:'♜\uFE0E',b:'♝\uFE0E',n:'♞\uFE0E',p:'♟\uFE0E'};
+const $=id=>document.getElementById(id);
+let mode='learn',stars=0;
+try{stars=+localStorage.getItem('stars')||0}catch(e){}
+function addStar(){stars++;$('stars').textContent=stars;try{localStorage.setItem('stars',stars)}catch(e){}}
+$('stars').textContent=stars;
+function say(t){$('msg').textContent=t;try{const u=new SpeechSynthesisUtterance(t);u.lang='ar';speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+function sqEl(r,c,html,cls,fn){const d=document.createElement('div');d.className='sq '+((r+c)%2?'d':'l')+' '+(cls||'');if(html)d.innerHTML=html;d.onclick=fn;return d}
+
+/* ---------- الدروس ---------- */
+const P={
+ p:{n:'البيدق',t:'يمشي للأمام خطوة واحدة (وخطوتين في أول مرة).'},
+ r:{n:'القلعة',t:'تمشي في خطوط مستقيمة: للأمام والخلف والجانبين.'},
+ b:{n:'الفيل',t:'يمشي في خطوط مائلة (قُطر).'},
+ n:{n:'الحصان',t:'يقفز على شكل حرف L ويقدر يقفز فوق القطع!'},
+ q:{n:'الوزيرة',t:'أقوى قطعة! تمشي مستقيم ومائل.'},
+ k:{n:'الملك',t:'يمشي خطوة واحدة في أي اتجاه. لازم نحميه!'}
+};
+let L={p:'r',pos:[4,4],tg:null,mv:[]};
+function lmoves(p,[r,c]){
+ const o=[],add=(a,b)=>{if(a>=0&&a<8&&b>=0&&b<8)o.push([a,b])};
+ const ray=ds=>ds.forEach(([a,b])=>{for(let i=1;i<8;i++)add(r+a*i,c+b*i)});
+ const S=[[1,0],[-1,0],[0,1],[0,-1]],D=[[1,1],[1,-1],[-1,1],[-1,-1]];
+ if(p=='r')ray(S);if(p=='b')ray(D);if(p=='q')ray(S.concat(D));
+ if(p=='k')S.concat(D).forEach(([a,b])=>add(r+a,c+b));
+ if(p=='n')[[1,2],[2,1],[-1,2],[-2,1],[1,-2],[2,-1],[-1,-2],[-2,-1]].forEach(([a,b])=>add(r+a,c+b));
+ if(p=='p'){add(r-1,c);if(r==6)add(r-2,c)}
+ return o;
+}
+function pickTarget(){const m=L.mv=lmoves(L.p,L.pos);L.tg=m[Math.floor(Math.random()*m.length)]}
+function choose(p){L.p=p;L.pos=p=='p'?[6,4]:[4,4];pickTarget();say(P[p].n+': '+P[p].t+' وصّل '+P[p].n+' إلى النجمة!');drawLearn()}
+function drawLearn(){
+ $('pieces').innerHTML='';
+ for(const k in P){const b=document.createElement('button');b.textContent=G[k]+' '+P[k].n;if(k==L.p)b.className='on';b.onclick=()=>choose(k);$('pieces').appendChild(b)}
+ const B=$('board');B.innerHTML='';
+ for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+  const isP=L.pos[0]==r&&L.pos[1]==c;
+  const isM=L.mv.some(m=>m[0]==r&&m[1]==c);
+  const isT=L.tg&&L.tg[0]==r&&L.tg[1]==c;
+  B.appendChild(sqEl(r,c,isP?G[L.p]:'', (isP?'w ':'')+(isM?'dot ':'')+(isT?'star':''),()=>{
+   if(!isM)return;
+   if(isT){addStar();addPts(2);L.pos=(L.p=='p'&&r==0)?[6,c]:[r,c];pickTarget();say('أحسنت يا بطل! 🎉 نجمة جديدة!')}
+   else{L.pos=[r,c];pickTarget();say('جميل! حاول توصل للنجمة.')}
+   drawLearn();
+  }))}
+ $('ctrl').innerHTML='';$('evb').style.display='none';$('lt').innerHTML=$('lb').innerHTML=$('acc').innerHTML='';
+}
+
+/* ---------- اللعب ضد الكمبيوتر ---------- */
+let g,sel=null,busy=false;
+const val={p:1,n:3,b:3,r:5,q:9,k:0};
+function newGame(){g=new Chess();puz=null;evSF=null;hintSq='';sel=null;busy=false;$('acc').innerHTML='';say(two?'لعب مع صديق! الأبيض يبدأ ⚪ مرّروا الموبايل بينكم.':'أنت تلعب بالأبيض. ابدأ! اضغط على قطعة ثم على المكان.');drawPlay()}
+function status(){
+ if(g.in_checkmate()&&two)return g.turn()=='b'?'كش مات! ⚪ الأبيض فاز 🏆':'كش مات! ⚫ الأسود فاز 🏆';
+ if(g.in_checkmate())return g.turn()=='b'?'مات! 🏆 فزت يا بطل!':'مات! الكمبيوتر فاز. جرّب مرة ثانية 💪';
+ if(g.in_draw())return 'تعادل 🤝';
+ if(g.in_check()&&two)return 'كش! ⚠️ انتبه للملك';
+ if(g.in_check())return g.turn()=='w'?'انتبه! ملكك في كش!':'كش! ✔️';
+ return '';
+}
+function drawPlay(){
+ $('pieces').innerHTML='';
+ const B=$('board');B.innerHTML='';
+ const bd=g.board();
+ const legal=sel?g.moves({square:sel,verbose:true}):[];
+ for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+  const s='abcdefgh'[c]+(8-r),pc=bd[r][c];
+  const m=legal.find(x=>x.to==s);
+  let cls=(pc?(pc.color=='w'?'w ':'b '):'')+(s==sel?'sel ':'')+(m?(pc?'cap ':'dot '):'')+(s==hintSq?'star ':'');
+  if(pc&&pc.type=='k'&&pc.color==g.turn()&&g.in_check())cls+=' chk';
+  B.appendChild(sqEl(r,c,pc?G[pc.type]:'',cls,()=>tap(s,pc)));
+ }
+ $('ctrl').innerHTML='<button id="nb">🔄 لعبة جديدة</button><button id="lv">'+LV[lvl]+'</button><button id="md">'+(two?'👫 ضد صديق':'🤖 ضد الكمبيوتر')+'</button><button id="ub">↩️ تراجع</button>'+(two?'':'<button id="hn">💡 نصيحة</button>');
+ $('nb').onclick=newGame;$('md').onclick=()=>{two=!two;newGame()};if(two)$('lv').style.display='none';$('lv').onclick=()=>{lvl=(lvl+1)%5;$('lv').textContent=LV[lvl]};if($('hn'))$('hn').onclick=sfHint;renderSide();
+ $('ub').onclick=()=>{if(busy)return;g.undo();if(!two)g.undo();evSF=null;sel=null;drawPlay()};
+}
+function tap(s,pc){
+ if(puz)return puzTap(s,pc);
+ if(busy||g.game_over())return;
+ if(sel){
+  const m=g.moves({square:sel,verbose:true}).find(x=>x.to==s);
+  if(m){const fenB=g.fen(),fr=sel;const S=(two||SF.ready)?null:scores();g.move({from:sel,to:s,promotion:'q'});if(S)judge(S,sel,s);else if(!two&&SF.ready)sfJudge(fenB,fr,s);hintSq='';sel=null;drawPlay();
+   const st=status();
+   if(g.game_over()){say(st);if(g.in_checkmate()&&!two){addStar();st.win++;addPts(20*(lvl+1),'فوز!')}return}
+   if(two){say(st||(g.turn()=='w'?'دور الأبيض ⚪':'دور الأسود ⚫'));return}
+   if(st)say(st);else say('دور الكمبيوتر...');
+   busy=true;setTimeout(cpu,600);return}
+ }
+ sel=(pc&&pc.color==(two?g.turn():'w'))?s:null;drawPlay();
+}
+function cpu(){
+ if(SF.ready&&lvl>0&&!two){sfCpu();return}
+ const ms=g.moves({verbose:true});
+ if(!ms.length){busy=false;return}
+ // مستوى سهل: يفضّل أخذ القطع أحيانًا، وإلا حركة عشوائية
+ let pick=ms[Math.floor(Math.random()*ms.length)];
+ const caps=ms.filter(m=>m.captured);
+ if(caps.length&&Math.random()<0.5)pick=caps.sort((a,b)=>val[b.captured]-val[a.captured])[0];
+ if(lvl>0&&Math.random()<(lvl==1?0.6:1)){const S=scores(),mx=Math.max(...S.map(x=>x.v)),top=S.filter(x=>x.v==mx);pick=top[Math.floor(Math.random()*top.length)].m}
+ g.move(pick);busy=false;drawPlay();
+ const st=status();say(st||'دورك! 😊');
+ if(g.in_checkmate()&&g.turn()=='w'){}
+}
+
+/* ---------- التقييم والمأكولات ---------- */
+const CP={p:100,n:320,b:330,r:500,q:900,k:0};
+function ev(){let s=0;const bd=g.board();
+ for(let r=0;r<8;r++)for(let c=0;c<8;c++){const p=bd[r][c];if(!p)continue;
+  let v=CP[p.type];if(p.type!='k')v+=(3.5-Math.abs(c-3.5))*4+(3.5-Math.abs(r-3.5))*4;
+  s+=p.color=='w'?v:-v}
+ return s}
+function srch(d,a,b){
+ if(g.in_checkmate())return -99999;
+ if(g.in_draw())return 0;
+ if(d==0)return g.turn()=='w'?ev():-ev();
+ let best=-1e9;
+ for(const m of g.moves()){g.move(m);const v=-srch(d-1,-b,-a);g.undo();
+  if(v>best)best=v;if(v>a)a=v;if(a>=b)break}
+ return best}
+function scores(){return g.moves({verbose:true}).map(m=>{g.move(m.san);const v=-srch(1,-1e9,1e9);g.undo();return{m,v}})}
+function judge(S,from,to){
+ const best=S.reduce((x,y)=>y.v>x.v?y:x);
+ const me=S.find(x=>x.m.from==from&&x.m.to==to);
+ const loss=Math.max(0,best.v-me.v);
+ const pct=Math.round(Math.max(0,100-loss/6));
+ const t=loss<30?'ممتازة ✅':loss<100?'جيدة 👍':loss<250?'غير دقيقة ⚠️':'غلطة ❌';
+ $('acc').innerHTML='دقة نقلتك: <b>'+pct+'%</b> '+t+(loss>=100?'<br>الأفضل كان: <b>'+best.m.san+'</b>':'');
+}
+function renderSide(){
+ $('evb').style.display='';
+ const lw=[],lb=[];
+ g.history({verbose:true}).forEach(m=>{if(m.captured)(m.color=='w'?lb:lw).push(m.captured)});
+ const row=(a,col,lab)=>'<small>'+lab+'</small>'+(a.sort((x,y)=>CP[y]-CP[x]).map(t=>'<span class="'+col+'">'+G[t]+'</span>').join('')||'—');
+ $('lt').innerHTML=row(lb,'b',two?'الأسود خسر:':'الكمبيوتر خسر:');
+ $('lb').innerHTML=row(lw,'w',two?'الأبيض خسر:':'أنت خسرت:');
+ const e=g.in_checkmate()?(g.turn()=='w'?-3000:3000):(evSF!=null?evSF:ev());
+ $('evf').style.height=(50+50*Math.tanh(e/500))+'%';
+}
+
+/* ---------- المستويات والتحديات ---------- */
+let lvl=0,puz=null,pi=-1,two=false;
+const LV=['😊 المستوى: سهل جدًا','🙂 المستوى: سهل','😎 المستوى: متوسط','🔥 المستوى: صعب','👑 المستوى: خبير'];
+const PZ=[
+ ['6k1/5ppp/8/8/8/8/8/R5K1 w - - 0 1','الملك الأسود محبوس خلف جنوده. القلعة تقدر توصل للصف الأخير!'],
+ ['7k/5Q2/6K1/8/8/8/8/8 w - - 0 1','الوزيرة قريبة من الملك، والملك الأبيض يحميها.'],
+ ['7k/8/6K1/8/8/8/8/R7 w - - 0 1','القلعة تقدر تمشي بعيد على الصف الأخير.'],
+ ['6rk/6pp/8/6N1/8/8/8/6K1 w - - 0 1','الحصان يقفز لمكان يخوّف الملك، والملك محاصر بقطعه!'],
+ ['k7/8/1K6/8/8/8/8/6Q1 w - - 0 1','الوزيرة تمشي مستقيم على الخط الطويل.']
+];
+function newPuz(){pi=(pi+1)%PZ.length;g=new Chess(PZ[pi][0]);puz={done:false};sel=null;busy=false;say('كش مات في نقلة واحدة! ابحث عن النقلة. ⭐');puzDraw()}
+function puzDraw(){
+ drawPlay();$('evb').style.display='none';$('lt').innerHTML=$('lb').innerHTML=$('acc').innerHTML='';
+ $('ctrl').innerHTML='<button id="hb">💡 تلميح</button><button id="nx">التالي ➡️</button>';
+ $('nx').onclick=newPuz;
+ $('hb').onclick=()=>{const m=g.moves({verbose:true}).find(x=>{g.move(x.san);const k=g.in_checkmate();g.undo();return k});if(m){sel=m.from;say('💡 '+PZ[pi][1]);puzDraw()}};
+}
+function puzTap(s,pc){
+ if(puz.done)return;
+ if(sel){
+  const m=g.moves({square:sel,verbose:true}).find(x=>x.to==s);
+  if(m){
+   g.move({from:sel,to:s,promotion:'q'});
+   if(g.in_checkmate()){addStar();puz.done=true;sel=null;say('كش مات! 🎉 أحسنت يا بطل!');puzDraw();return}
+   g.undo();sel=null;say('ما فيش مات بالنقلة دي 🤔 جرّب تاني!');puzDraw();return;
+  }
+ }
+ sel=(pc&&pc.color=='w')?s:null;puzDraw();
+}
+
+/* ---------- ألغاز متدرجة ---------- */
+const LVN=['مبتدئ 🌱','متوسط 🌟','متقدم 🔥','محترف 👑','بطل 🏆'],NT=['','نقلة واحدة','نقلتين','3 نقلات'];
+const H0=['الملك الأسود محبوس خلف جنوده. القلعة تقدر توصل للصف الأخير!','الوزيرة قريبة من الملك، والملك الأبيض يحميها.','القلعة تقدر تمشي بعيد على الصف الأخير.','الحصان يقفز لمكان يخوّف الملك، والملك محاصر بقطعه!','الوزيرة تمشي مستقيم على الخط الطويل.'];
+const HD=['ابحث عن نقلة تعمل كش ولا يقدر الملك يهرب منها.','انتبه لكل القطع! نقلة واحدة تعمل مات.','ابدأ بنقلة تحاصر الملك وتمنعه من الحركة، ثم أنهِ اللعب.','فكّر بهدوء: كل نقلة لازم تضيّق على الملك أكتر.'];
+const PZ2=[["6k1/5ppp/8/8/8/8/8/R5K1 w - - 0 1",1,[],0,0],["7k/5Q2/6K1/8/8/8/8/8 w - - 0 1",1,[],0,1],["7k/8/6K1/8/8/8/8/R7 w - - 0 1",1,[],0,2],["7k/5K2/8/8/8/8/8/6Q1 w - - 0 1",1,[],0,-1],["6k1/5ppp/8/8/8/8/5PPP/4R1K1 w - - 0 1",1,[],0,-1],["3r2k1/5ppp/8/8/8/8/5PPP/3Q2K1 w - - 0 1",1,[],0,-1],["6rk/6pp/8/6N1/8/8/8/6K1 w - - 0 1",1,[],0,3],["k7/8/1K6/8/8/8/8/6Q1 w - - 0 1",1,[],0,4],["r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w - - 0 1",1,[],0,-1],["8/3p4/2P5/2p5/2p4B/3NK3/R7/3k4 w - - 0 1",1,[],1,-1],["1R6/5B2/5K1k/5p1p/7P/2N5/1p6/8 w - - 0 1",1,[],1,-1],["7N/5R2/8/8/2Kp4/Pp5B/7p/7k w - - 0 1",1,[],1,-1],["4k3/1R4K1/1N6/p5B1/8/4P2p/6p1/8 w - - 0 1",1,[],1,-1],["8/6p1/k1Kp4/2P5/2RB4/1Np5/8/8 w - - 0 1",1,[],1,-1],["k7/8/8/8/8/8/7R/6RK w - - 0 1",2,["h2h7","h2b2","g1g7","g1b1"],2,-1],["1k6/8/8/8/4p3/R7/2R5/K7 w - - 0 1",2,["a3b3"],2,-1],["5R2/8/8/8/2p5/8/1R6/2k1K3 w - - 0 1",2,["f8f2"],2,-1],["4K3/1R6/k7/8/8/2p5/8/2R5 w - - 0 1",2,["b7b3"],2,-1],["8/2p5/4R3/8/3K4/7R/k7/8 w - - 0 1",2,["e6e2"],2,-1],["8/8/4K1p1/7k/6p1/6Q1/8/2N5 w - - 0 1",2,["e6f6"],2,-1],["4k3/8/8/1K2N1p1/8/4pQ2/8/8 w - - 0 1",2,["f3f7"],2,-1],["5B2/8/8/8/5R2/4K2p/8/4k3 w - - 0 1",3,["e3d3"],3,-1],["8/8/1p5R/8/8/3B4/k7/2K5 w - - 0 1",3,["h6b6","d3c2"],3,-1],["8/7B/7R/8/4K3/2p5/8/4k3 w - - 0 1",3,["e4e3"],3,-1],["8/2R4B/8/8/5p2/8/4K3/7k w - - 0 1",3,["e2f2"],3,-1],["8/7k/4K3/5R2/8/8/1pB5/8 w - - 0 1",3,["e6f7"],3,-1]];
+PZ2.push(["k7/p7/3p4/5Q2/6K1/8/8/8 w - - 0 1",1,[],0,-1],["8/2Q2K1k/6p1/8/8/5p2/8/8 w - - 0 1",1,[],0,-1],["8/8/8/8/p3Q3/7K/3p4/6k1 w - - 0 1",1,[],0,-1],["8/8/8/8/8/2p5/2pQ4/5K1k w - - 0 1",1,[],0,-1],["8/6p1/1p6/k7/2K5/6Q1/8/8 w - - 0 1",1,[],0,-1],["8/8/1K6/8/k7/pp6/7Q/8 w - - 0 1",1,[],0,-1],["2k5/8/1K1Q4/8/8/p7/5p2/8 w - - 0 1",1,[],0,-1],["8/1p6/4QK2/7k/8/8/6p1/8 w - - 0 1",1,[],0,-1],["8/2p5/7k/5K2/8/7p/8/Q7 w - - 0 1",1,[],0,-1],["8/2R4p/8/8/6p1/k1K5/3p4/8 w - - 0 1",1,[],0,-1],["5K1k/7p/8/5pR1/p7/8/8/8 w - - 0 1",1,[],0,-1],["8/k1K4p/6p1/8/5p2/8/8/7R w - - 0 1",1,[],0,-1],["2k5/8/2K5/2p2p2/8/1p6/8/7R w - - 0 1",1,[],0,-1],["2B3k1/8/2p3KP/3R4/2p4N/6p1/8/8 w - - 0 1",1,[],1,-1],["5R2/3P4/8/7p/p2p4/5N2/4B3/K1k5 w - - 0 1",1,[],1,-1],["k7/1p3R2/2N5/2B3p1/8/1p2K3/2P5/8 w - - 0 1",1,[],1,-1],["8/K7/6p1/2p5/8/5P2/5Npk/6RB w - - 0 1",1,[],1,-1],["B6k/6pN/6P1/8/8/8/2p1p2R/4K3 w - - 0 1",1,[],1,-1],["3RB1k1/8/5K2/3p4/8/2p1p3/2PN4/8 w - - 0 1",1,[],1,-1],["5k2/5p2/8/4PN2/1p1K2p1/8/5B2/7R w - - 0 1",1,[],1,-1],["6R1/k1K5/5p1B/4p3/1NP1p3/8/8/8 w - - 0 1",1,[],1,-1],["8/k7/p7/R7/8/8/4R3/3K4 w - - 0 1",2,["e2b2"],2,-1],["k7/8/8/2K5/8/3p4/2R4R/8 w - - 0 1",2,["c5b6"],2,-1],["4K3/1pR5/8/8/8/k7/1R6/8 w - - 0 1",2,["c7b7"],2,-1],["1k6/6p1/4RR2/8/8/8/3K4/8 w - - 0 1",2,["f6f7"],2,-1],["1K2k3/7R/8/8/8/R7/7p/8 w - - 0 1",2,["a3c3"],2,-1],["8/8/1k6/8/K4p2/8/2R5/2R5 w - - 0 1",2,["c2c7"],2,-1],["8/1K6/8/8/7p/2R5/7k/3R4 w - - 0 1",2,["d1d2"],2,-1],["8/1R6/8/3K4/k7/8/1p6/4R3 w - - 0 1",2,["e1e8"],2,-1],["7k/5p2/2K5/8/1p6/8/7B/5Q2 w - - 0 1",2,["f1f7"],2,-1],["2K5/6p1/8/8/2Q5/p7/3B4/7k w - - 0 1",2,["c4f1"],2,-1],["8/3B4/8/8/8/8/1ppQ4/4K2k w - - 0 1",2,["d7c6"],2,-1],["6B1/Q7/8/p7/8/1p5K/8/5k2 w - - 0 1",2,["a7e3"],2,-1],["6B1/8/8/8/k1pK1R2/8/8/8 w - - 0 1",3,["d4c4"],3,-1],["B4k2/8/5p2/1R3K2/8/8/8/8 w - - 0 1",3,["f5f6"],3,-1],["8/8/2B5/1R6/8/3K4/k1p5/8 w - - 0 1",3,["d3c2"],3,-1],["8/4R3/3p4/4B3/8/4K3/8/4k3 w - - 0 1",3,["e5d6"],3,-1],["8/8/8/8/6R1/k6p/3K1B2/8 w - - 0 1",3,["d2c2"],3,-1],["8/8/8/2R4p/k2K1B2/8/8/8 w - - 0 1",3,["d4c3"],3,-1],["7R/k2K4/6p1/8/5B2/8/8/8 w - - 0 1",3,["d7c6"],3,-1],["8/8/p7/8/2N1K3/2p5/5Qp1/2k5 w - - 0 1",3,["e4d3","c4a3"],4,-1],["8/4Kp2/k7/3p4/7p/1Q4N1/8/8 w - - 0 1",3,["e7d7","e7d6"],4,-1],["2N5/8/1p3K2/k3pp2/8/3Q4/8/8 w - - 0 1",3,["d3b3"],4,-1],["8/8/2K5/8/8/pp1QN3/6pk/8 w - - 0 1",3,["e3g4"],4,-1],["1k6/2p5/4Q3/3Kp3/1N6/8/1p6/8 w - - 0 1",3,["e6a6"],4,-1],["8/8/5p2/k3p3/8/3K4/2p5/1QN5 w - - 0 1",3,["b1b7"],4,-1],["8/6k1/8/3p3K/5p1Q/p3N3/8/8 w - - 0 1",3,["h4e7","e3f5"],4,-1],["8/8/8/3p1pp1/3N4/8/1k3K2/6Q1 w - - 0 1",3,["g1g3"],4,-1],["5N1k/3p4/K1p5/6p1/6Q1/8/8/8 w - - 0 1",3,["g4g5","g4d7"],4,-1],["8/8/4N3/8/1p5k/8/3Qpp2/2K5 w - - 0 1",3,["d2g5"],4,-1],["6N1/8/k2K4/4p2p/8/6p1/8/7Q w - - 0 1",3,["h1b1","h1c6"],4,-1],["8/2K5/k5pQ/7N/4p3/7p/8/8 w - - 0 1",3,["h6g5"],4,-1]);
+PZ2.sort((a,b)=>a[3]-b[3]);
+function canM(n){for(const m of g.moves()){g.move(m);const ok=g.in_checkmate()||(n>1&&!g.game_over()&&forcedOK(n-1));g.undo();if(ok)return true}return false}
+function forcedOK(n){const ms=g.moves();if(!ms.length)return false;for(const m of ms){g.move(m);const ok=canM(n);g.undo();if(!ok)return false}return true}
+function hintMove(){
+ if(puz.first&&puz.sol.length)return puz.sol[0].slice(0,2);
+ for(const m of g.moves({verbose:true})){g.move(m.san);const ok=g.in_checkmate()||(puz.left>1&&!g.game_over()&&forcedOK(puz.left-1));g.undo();if(ok)return m.from}
+}
+function newPuz(){
+ pi=(pi+1)%PZ2.length;const p=PZ2[pi];g=new Chess(p[0]);
+ puz={n:p[1],left:p[1],sol:p[2],first:true,done:false,busy:false,lv:p[3],h:p[4]};sel=null;busy=false;
+ say('['+LVN[p[3]]+'] لغز '+(pi+1)+' من '+PZ2.length+' — كش مات في '+NT[p[1]]+'! ⭐');puzDraw();
+}
+function puzDraw(){
+ drawPlay();$('evb').style.display='none';$('lt').innerHTML=$('lb').innerHTML=$('acc').innerHTML='';
+ $('ctrl').innerHTML='<button id="hb">💡 تلميح</button><button id="nx">التالي ➡️</button><button id="lj">⏫ مستوى أعلى</button>';
+ $('nx').onclick=newPuz;
+ $('lj').onclick=()=>{const nx=PZ2.findIndex(p=>p[3]==(puz.lv+1)%5);pi=nx-1;newPuz()};
+ $('hb').onclick=()=>{if(puz.done||puz.busy)return;const f=hintMove();if(f){puz.hinted=true;sel=f;puzDraw();say('💡 '+(puz.h>=0?H0[puz.h]:HD[puz.lv]))}};
+}
+function puzTap(s,pc){
+ if(puz.done||puz.busy)return;
+ if(sel){
+  const m=g.moves({square:sel,verbose:true}).find(x=>x.to==s);
+  if(m){
+   const from=sel;sel=null;
+   g.move({from,to:s,promotion:'q'});
+   let good=g.in_checkmate();
+   if(!good&&puz.left>1&&!g.game_over())good=(puz.first&&puz.sol.length)?puz.sol.includes(from+s):forcedOK(puz.left-1);
+   if(!good){puz.wrong=true;g.undo();puzDraw();say('مش دي النقلة الصح 🤔 جرّب تاني!');return}
+   if(g.in_checkmate()){addStar();puz.done=true;puzDraw();puzReward();say('كش مات! 🎉 أحسنت يا بطل!');return}
+   puz.left--;puz.first=false;puz.busy=true;puzDraw();say('نقلة ممتازة! 👏 الكمبيوتر بيرد...');
+   setTimeout(()=>{const ms=g.moves();g.move(ms[Math.floor(Math.random()*ms.length)]);puz.busy=false;puzDraw();say('كمّل! باقي '+NT[puz.left]+' للمات.')},700);
+   return;
+  }
+ }
+ sel=(pc&&pc.color=='w')?s:null;puzDraw();
+}
+
+/* ---------- النقاط ---------- */
+const RK=[[0,'بيدق 🐣'],[100,'حصان 🐴'],[250,'فيل 🐘'],[500,'قلعة 🏰'],[900,'وزير 👑'],[1500,'ملك 🏆']];
+let pts=0,streak=0;try{pts=+localStorage.getItem('pts')||0}catch(e){}
+function rk(p){let i=0;RK.forEach((r,j)=>{if(p>=r[0])i=j});return i}
+function showPts(){const i=rk(pts),n=RK[i+1];$('pts').textContent=pts;$('rank').textContent='الرتبة: '+RK[i][1];$('pfill').style.width=(n?Math.min(100,(pts-RK[i][0])/(n[0]-RK[i][0])*100):100)+'%'}
+function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),1900)}
+function addPts(n,why){const a=rk(pts);pts+=n;try{localStorage.setItem('pts',pts)}catch(e){}showPts();setTimeout(chkBd,0);toast('+'+n+' 💎 '+(why||''));if(rk(pts)>a)setTimeout(()=>{toast('🎊 رتبة جديدة: '+RK[rk(pts)][1]);say('مبروك! وصلت لرتبة '+RK[rk(pts)][1])},1000)}
+function puzReward(){const clean=!puz.hinted&&!puz.wrong;streak=clean?streak+1:0;st.pz++;st.l[puz.lv]++;st.bs=Math.max(st.bs,streak);sv();let n=10*(puz.lv+1),why='';if(clean){n+=5;why='بدون مساعدة!'}if(streak>1){n+=Math.min(10,streak*2);why+=' 🔥×'+streak}addPts(n,why)}
+showPts();
+
+/* ---------- دروس ---------- */
+let lg,lsel=null,li=0,ldone=[];try{ldone=JSON.parse(localStorage.getItem('ldone')||'[]')}catch(e){}
+const LS=[
+['الأخذ ⚔️','القطع تقدر تأخذ قطع الخصم! اضغط على القلعة ثم على البيدق الأسود لتأخذه.','4k3/8/8/3p4/8/8/3R4/4K3 w - - 0 1','cap','اختر القلعة ثم اضغط على المربع الذي فيه البيدق الأسود.'],
+['الكش ⚠️','الكش يعني أنك تهاجم ملك الخصم. اعمل كش على الملك الأسود!','4k3/8/8/8/8/8/8/R3K3 w - - 0 1','chk','حرّك القلعة بحيث تهاجم الملك الأسود.'],
+['الهروب من الكش 🏃','ملكك في كش! لازم تنقذه: حرّكه لمكان آمن أو خذ القطعة اللي بتهاجمه.','4k3/8/8/8/8/8/4r3/4K3 w - - 0 1','esc','حرّك الملك الأبيض.'],
+['الكش مات 🏁','الكش مات يعني الملك في كش ومفيش أي مهرب! اعمل كش مات بالقلعة.','7k/8/6K1/8/8/8/8/R7 w - - 0 1','mate','القلعة تروح للصف الأخير في الأعلى.'],
+['التبييت 🏰','حركة خاصة: الملك يتحرك مربعين والقلعة تقفز فوقه. اضغط على الملك ثم على المربع بجانبه بمربعين.','r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1','castle','اضغط على الملك الأبيض ثم على مربعين بجانبه.'],
+['الأخذ بالمرور 👻','حركة سحرية! البيدق الأسود قفز خطوتين بجانب بيدقك، فتقدر تأخذه بالمرور كأنه خطا خطوة.','4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1','ep','حرّك البيدق الأبيض إلى المربع القطري الفاضي أمامه.'],
+['ترقية البيدق 👑','لما البيدق يوصل لآخر الرقعة يتحول لوزيرة! وصّله!','8/4P3/8/8/8/8/k7/4K3 w - - 0 1','promo','حرّك البيدق خطوة للأمام.']
+];
+function lgood(k,m){
+ if(k=='cap')return !!m.captured;if(k=='chk')return lg.in_check();if(k=='esc')return true;
+ if(k=='mate')return lg.in_checkmate();if(k=='castle')return /[kq]/.test(m.flags);
+ if(k=='ep')return m.flags.includes('e');if(k=='promo')return !!m.promotion;return false}
+function lessTabs(){
+ $('pieces').innerHTML='';
+ LS.forEach((l,i)=>{const b=document.createElement('button');b.textContent=(ldone.includes(i)?'✅ ':(i+1)+'. ')+l[0];if(i==li)b.className='on';b.onclick=()=>lessStart(i);$('pieces').appendChild(b)});
+}
+function lessons(){lessStart(li)}
+function lessStart(i){li=i;lg=new Chess(LS[i][2]);lsel=null;lessTabs();say(LS[i][1]);lessDraw()}
+function lessDraw(){
+ $('evb').style.display='none';$('lt').innerHTML=$('lb').innerHTML=$('acc').innerHTML='';
+ const B=$('board');B.innerHTML='';const bd=lg.board();
+ const lm=lsel?lg.moves({square:lsel,verbose:true}):[];
+ for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+  const s='abcdefgh'[c]+(8-r),pc=bd[r][c],m=lm.find(x=>x.to==s);
+  B.appendChild(sqEl(r,c,pc?G[pc.type]:'',(pc?(pc.color=='w'?'w ':'b '):'')+(s==lsel?'sel ':'')+(m?(pc?'cap ':'dot '):''),()=>lessTap(s,pc)));
+ }
+ $('ctrl').innerHTML='<button id="lr">🔁 من جديد</button>'+(li<LS.length-1?'<button id="ln">الدرس التالي ➡️</button>':'');
+ $('lr').onclick=()=>lessStart(li);if($('ln'))$('ln').onclick=()=>lessStart(li+1);
+}
+function lessTap(s,pc){
+ if(lsel){
+  const m=lg.moves({square:lsel,verbose:true}).find(x=>x.to==s);
+  if(m){
+   const mv=lg.move({from:lsel,to:s,promotion:'q'});lsel=null;
+   if(lgood(LS[li][3],mv)){
+    lessDraw();
+    if(!ldone.includes(li)){ldone.push(li);try{localStorage.setItem('ldone',JSON.stringify(ldone))}catch(e){}addStar();addPts(15,'درس جديد!');lessTabs()}
+    say('أحسنت يا بطل! 🎉 أنهيت الدرس.');return;
+   }
+   lg.undo();lessDraw();say('حاول تاني 🤔 '+LS[li][4]);return;
+  }
+ }
+ lsel=(pc&&pc.color==lg.turn())?s:null;lessDraw();
+}
+
+/* ---------- الشارات ---------- */
+let st={pz:0,win:0,bs:0,l:[0,0,0,0,0]},got=[];
+try{st=Object.assign(st,JSON.parse(localStorage.getItem('st')||'{}'));got=JSON.parse(localStorage.getItem('got')||'[]')}catch(e){}
+function sv(){try{localStorage.setItem('st',JSON.stringify(st));localStorage.setItem('got',JSON.stringify(got))}catch(e){}}
+const BD=[
+['🧩','أول لغز','حلّ أول لغز',()=>st.pz>=1],
+['🔟','حلّال الألغاز','حلّ 10 ألغاز',()=>st.pz>=10],
+['🌟','أسطورة الألغاز','حلّ 50 لغز',()=>st.pz>=50],
+['🔥','سلسلة نارية','5 ألغاز نظيفة ورا بعض (بدون تلميح ولا غلط)',()=>st.bs>=5],
+['🥉','لاعب متوسط','حلّ لغز من مستوى متوسط',()=>st.l[1]>0],
+['🥈','لاعب متقدم','حلّ لغز من مستوى متقدم',()=>st.l[2]>0],
+['🥇','لاعب محترف','حلّ لغز من مستوى محترف',()=>st.l[3]>0],
+['🏆','البطل','حلّ لغز من مستوى بطل',()=>st.l[4]>0],
+['🎮','أول فوز','اهزم الكمبيوتر بكش مات',()=>st.win>=1],
+['🎓','خريج الدروس','أنهِ كل الدروس',()=>ldone.length>=LS.length],
+['💎','100 نقطة','اجمع 100 نقطة',()=>pts>=100],
+['👑','500 نقطة','اجمع 500 نقطة',()=>pts>=500]
+];
+function chkBd(){
+ let nw=null;
+ BD.forEach((b,i)=>{if(!got.includes(i)&&b[3]()){got.push(i);nw=b}});
+ if(nw){sv();setTimeout(()=>{toast('🏅 شارة جديدة: '+nw[0]+' '+nw[1]);say('مبروك! شارة جديدة: '+nw[1])},1600)}
+}
+function bdShow(){
+ $('bp').innerHTML='<div class="card"><h3>🏅 شاراتي ('+got.length+'/'+BD.length+')</h3>'+BD.map((b,i)=>'<div class="bg'+(got.includes(i)?' got':'')+'"><i>'+(got.includes(i)?b[0]:'🔒')+'</i><div><b>'+b[1]+'</b><br><small>'+b[2]+'</small></div></div>').join('')+'<button id="bx">إغلاق</button></div>';
+ $('bp').className='on';$('bx').onclick=()=>{$('bp').className=''};
+}
+$('bd').onclick=bdShow;
+
+/* ---------- الفتحات ---------- */
+let oi=0,og,ostep=0,osel=null,ohint='',obusy=false,odone=[],omode='learn',olast=-1,oblk='';
+try{odone=JSON.parse(localStorage.getItem('odone')||'[]')}catch(e){}
+const OP=[
+['الفتحة الإيطالية 🍕','فتحة قديمة وسهلة! الفكرة: سيطر على الوسط، طلّع الحصان والفيل، وبيّت الملك.','e2e4 e7e5 g1f3 b8c6 f1c4 f8c5 e1g1 g8f6 d2d3 d7d6',['نفتح الطريق للفيل والوزيرة ونسيطر على الوسط!','الأسود يرد بنفس الفكرة.','نطلّع الحصان ونهاجم بيدق الأسود.','الأسود يدافع عن بيدقه.','الفيل يطلع ويشاور على نقطة ضعف الأسود.','الأسود يطلّع فيله كمان.','التبييت! الملك يروح لمكان آمن.','الأسود يطلّع حصانه.','بيدق يحمي الوسط ويفتح الطريق للفيل.','الأسود يدعم بيدقه.']],
+['الفتحة الإسبانية 💃','اسمها روي لوبيز، ولاعبين كبار بيحبوها. الفكرة: نضغط على الحصان اللي بيحمي بيدق الأسود.','e2e4 e7e5 g1f3 b8c6 f1b5 a7a6 b5a4 g8f6 e1g1 f8e7',['نسيطر على الوسط.','الأسود يرد.','حصان يهاجم البيدق.','الأسود يدافع بالحصان.','الفيل يضغط على الحصان اللي بيحمي البيدق.','الأسود يسأل الفيل: هتروح فين؟','الفيل يتراجع ويحافظ على الضغط.','الأسود يطلّع حصانه.','نبيّت الملك.','الأسود يحمي ملكه بالفيل.']],
+['لعبة الملكة 👸','فتحة قوية جدًا! نبدأ بالبيدق d ونسيطر على الوسط.','d2d4 d7d5 c2c4 e7e6 b1c3 g8f6 c1g5 f8e7 e2e3 e8g8',['نسيطر على الوسط بالبيدق ونفتح الطريق للوزيرة والفيل.','الأسود يعمل نفس الشيء.','نعرض بيدقًا عشان نكسب السيطرة على الوسط.','الأسود يقفل الدفاع بقوة.','حصان يضغط على بيدق d5.','الأسود يطلّع حصانه.','الفيل يضغط على الحصان.','الأسود يطلّع الفيل.','بيدق يثبّت الوسط ويفتح طريق الفيل.','الأسود يبيّت ملكه.']],
+['فتحة لندن 🏙️','فتحة سهلة التعلّم: بتكرر نفس الترتيب تقريبًا في كل لعبة!','d2d4 d7d5 c1f4 g8f6 e2e3 e7e6 g1f3 f8e7 f1d3 e8g8',['نبدأ بالبيدق d.','الأسود يرد.','الفيل يطلع خارج السلسلة قبل ما نقفلها.','الأسود يطلّع حصانه.','بيدق يحمي الفيل ويفتح الطريق للفيل التاني.','الأسود يفتح طريق فيله.','حصان للحماية والمراقبة.','الأسود يطلّع فيله.','الفيل التاني يطلع ويضغط.','الأسود يبيّت.']],
+['مات العلماء ⚡','أسرع كش مات: 4 نقلات! بس انتبه: لاعب ذكي ممكن يدافع منه، فلا تعتمد عليه كل مرة.','e2e4 e7e5 f1c4 b8c6 d1h5 g8f6 h5f7',['نبدأ بالوسط.','الأسود يرد.','الفيل يشاور على f7، أضعف مربع عند الأسود.','الأسود يطلّع حصانه.','الوزيرة تهاجم f7 مع الفيل!','الأسود يهاجم وزيرتك بدل ما يحمي f7. غلطة!','خذ f7 بالوزيرة... كش مات! 🎉']]
+];
+BD.push(['🚀','خبير الفتحات','أنهِ كل الفتحات الخمس',()=>odone.length>=OP.length]);
+function opTabs(){
+ $('pieces').innerHTML='';
+ OP.forEach((o,i)=>{const b=document.createElement('button');b.textContent=(odone.includes(i)?'✅ ':'')+o[0];if(i==oi)b.className='on';b.onclick=()=>opStart(i);$('pieces').appendChild(b)});
+}
+function openings(){opStart(oi)}
+function opStart(i){oi=i;og=new Chess();ostep=0;osel=null;ohint='';obusy=false;olast=-1;oblk=OP[i][1]+' — ';opTabs();if(omode!='learn')say(OP[i][1]+' ابدأ: العب نقلة الأبيض.');opDraw()}
+function opDraw(){
+ const mv=OP[oi][2].split(' ');
+ if(omode=='learn'&&ostep%2==0&&ostep<mv.length&&!obusy){const u=mv[ostep];osel=u.slice(0,2);ohint=u.slice(2,4);if(olast!=ostep){olast=ostep;say(oblk+'👉 '+OP[oi][3][ostep]+' (القطعة المضيئة ← النجمة)');oblk=''}}
+ $('evb').style.display='none';$('lt').innerHTML=$('lb').innerHTML='';
+ $('acc').textContent='النقلة '+Math.min(ostep+1,mv.length)+' من '+mv.length;
+ const B=$('board');B.innerHTML='';const bd=og.board();
+ const lm=osel?og.moves({square:osel,verbose:true}):[];
+ for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+  const s='abcdefgh'[c]+(8-r),pc=bd[r][c],m=lm.find(x=>x.to==s);
+  B.appendChild(sqEl(r,c,pc?G[pc.type]:'',(pc?(pc.color=='w'?'w ':'b '):'')+(s==osel?'sel ':'')+(m?(pc?'cap ':'dot '):'')+(ohint==s?'star':''),()=>opTap(s,pc)));
+ }
+ $('ctrl').innerHTML=(omode=='learn'?'<button id="oa">▶️ نفّذ لي</button><button id="ob">◀️ رجوع</button><button id="om">🎯 جرّب بنفسك</button>':'<button id="om">📖 تعلّم</button>')+'<button id="oh">💡 أرني النقلة</button><button id="or">🔁 من جديد</button>'+(oi<OP.length-1?'<button id="on">فتحة تالية ➡️</button>':'');
+ $('or').onclick=()=>opStart(oi);$('om').onclick=()=>{omode=omode=='learn'?'practice':'learn';opStart(oi)};if($('oa'))$('oa').onclick=opAuto;if($('ob'))$('ob').onclick=opBack;if($('on'))$('on').onclick=()=>opStart(oi+1);
+ $('oh').onclick=()=>{if(obusy||ostep>=mv.length)return;const u=mv[ostep];osel=u.slice(0,2);ohint=u.slice(2,4);opDraw()};
+}
+function opTap(s,pc){
+ const mv=OP[oi][2].split(' ');
+ if(obusy||ostep>=mv.length)return;
+ if(osel){
+  const m=og.moves({square:osel,verbose:true}).find(x=>x.to==s);
+  if(m){
+   if(osel+s==mv[ostep]){og.move({from:osel,to:s,promotion:'q'});say(omode=='learn'?'✅ تمام!':'✅ '+OP[oi][3][ostep]);ostep++;osel=null;ohint='';opAfter();}
+   else{osel=null;ohint='';opDraw();say('هذي مش نقلة الفتحة 🤔 الحل: القطعة المضيئة ثم النجمة ⭐.')}
+   return;
+  }
+ }
+ osel=(pc&&pc.color=='w')?s:null;opDraw();
+}
+function opAfter(){
+ const mv=OP[oi][2].split(' ');
+ opDraw();
+ if(ostep>=mv.length){opDone();return}
+ obusy=true;
+ setTimeout(()=>{const u=mv[ostep];og.move({from:u.slice(0,2),to:u.slice(2,4),promotion:'q'});if(omode=='learn')oblk='⚫ '+OP[oi][3][ostep]+' — ';else say('⚫ '+OP[oi][3][ostep]);ostep++;obusy=false;opDraw();if(ostep>=mv.length)opDone()},900);
+}
+function opDone(){
+ say('🎉 أنهيت '+OP[oi][0]+'! أحسنت يا بطل.');
+ if(omode=='learn'){say('🎉 خلّصت تعلّم '+OP[oi][0]+'! دلوقتي اضغط 🎯 جرّب بنفسك واكسب النقاط.');return}
+ if(!odone.includes(oi)){odone.push(oi);try{localStorage.setItem('odone',JSON.stringify(odone))}catch(e){}addStar();addPts(20,'فتحة جديدة!');opTabs()}
+}
+
+/* ---------- نهايات اللعب ---------- */
+let ei=0,eg,esel=null,ebusy=false,en=0,edone=[];
+try{edone=JSON.parse(localStorage.getItem('edone')||'[]')}catch(e){}
+const EN=[
+['مات الوزيرة 👸','8/8/8/4k3/8/8/8/Q3K3 w - - 0 1','اعمل كش مات بالوزيرة وملكك. الفكرة: ضيّق على الملك الأسود بالوزيرة (من بعيد بحركة حصان)، ثم قرّب ملكك عشان يحميها. وانتبه: لو الملك الأسود ما بقاش عنده حركة ومش في كش، يبقى تعادل!','لا تعمل كش كتير بدون خطة. احبس الملك بالوزيرة وقرّب ملكك منه.'],
+['مات القلعة 🏰','8/8/8/4k3/8/8/8/R3K3 w - - 0 1','أصعب شوية: القلعة بتحبس الملك على صف أو عمود، وملكك يقرّب ويقف قدام ملكه، وبعدين القلعة تعمل كش مات على الحافة.','ابعد القلعة عن ملك الأسود عشان ما يأخذها، وقلّص المساحة عليه بالتدريج.'],
+['مات القلعتين (السلّم) 🪜','8/8/8/4k3/8/8/8/R3K2R w - - 0 1','قلعة تعمل كش وتحبس الملك على صف، والتانية تعمل كش على الصف اللي بعده، وهكذا لحد الحافة (مات السلم).','حرّك قلعة لصف بعيد عن الملك ثم التانية للصف اللي بعده، كل مرة الملك يرجع للخلف.'],
+['تجنّب الطريق المسدود ⚠️','k7/2Q5/1K6/8/8/8/8/8 w - - 0 1','الملك الأسود محاصر! اعمل كش مات في نقلة واحدة، واحذر: أي نقلة تخلّي الملك بلا حركة وبدون كش هي تعادل!','دور على نقلة تعمل كش والملك ما يقدرش يهرب.']
+];
+BD.push(['🏁','أستاذ النهايات','أنهِ كل تمارين نهايات اللعب',()=>edone.length>=EN.length]);
+function enTabs(){
+ $('pieces').innerHTML='';
+ EN.forEach((o,i)=>{const b=document.createElement('button');b.textContent=(edone.includes(i)?'✅ ':'')+o[0];if(i==ei)b.className='on';b.onclick=()=>enStart(i);$('pieces').appendChild(b)});
+}
+function endings(){enStart(ei)}
+function enStart(i){ei=i;eg=new Chess(EN[i][1]);esel=null;ebusy=false;en=0;enTabs();say(EN[i][2]);enDraw()}
+function enDraw(){
+ $('evb').style.display='none';$('lt').innerHTML=$('lb').innerHTML='';
+ $('acc').textContent='نقلاتك: '+en;
+ const B=$('board');B.innerHTML='';const bd=eg.board();
+ const lm=esel?eg.moves({square:esel,verbose:true}):[];
+ for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+  const s='abcdefgh'[c]+(8-r),pc=bd[r][c],m=lm.find(x=>x.to==s);
+  let cls=(pc?(pc.color=='w'?'w ':'b '):'')+(s==esel?'sel ':'')+(m?(pc?'cap ':'dot '):'');
+  if(pc&&pc.type=='k'&&pc.color==eg.turn()&&eg.in_check())cls+=' chk';
+  B.appendChild(sqEl(r,c,pc?G[pc.type]:'',cls,()=>enTap(s,pc)));
+ }
+ $('ctrl').innerHTML='<button id="eh">💡 نصيحة</button><button id="eu">↩️ تراجع</button><button id="er">🔁 من جديد</button>'+(ei<EN.length-1?'<button id="ex">التالي ➡️</button>':'');
+ $('er').onclick=()=>enStart(ei);if($('ex'))$('ex').onclick=()=>enStart(ei+1);
+ $('eh').onclick=()=>say('💡 '+EN[ei][3]);
+ $('eu').onclick=()=>{if(ebusy)return;const n=eg.history().length;if(n>=2){eg.undo();eg.undo();en=Math.max(0,en-1)}else if(n==1){eg.undo();en=0}esel=null;enDraw()};
+}
+function enEnd(){
+ if(eg.in_checkmate()){
+  enDraw();say('كش مات! 🎉 أحسنت يا بطل!');
+  if(!edone.includes(ei)){edone.push(ei);try{localStorage.setItem('edone',JSON.stringify(edone))}catch(e){}addStar();addPts(30,'نهاية جديدة!');enTabs()}
+  return true}
+ if(eg.game_over()){enDraw();say(eg.in_stalemate()?'طريق مسدود! 😬 تعادل. اضغط تراجع أو من جديد وجرّب تاني.':'تعادل. اضغط من جديد وجرّب تاني.');return true}
+ return false;
+}
+function enBlack(){
+ const ms=eg.moves({verbose:true});if(!ms.length)return null;
+ const cap=ms.filter(m=>m.captured);if(cap.length)return cap[0];
+ let best=null,bv=-1e9;
+ ms.forEach(m=>{const c='abcdefgh'.indexOf(m.to[0]),r=+m.to[1]-1,v=-(Math.abs(c-3.5)+Math.abs(r-3.5))+Math.random()*0.4;if(v>bv){bv=v;best=m}});
+ return best;
+}
+function enTap(s,pc){
+ if(ebusy||eg.game_over())return;
+ if(esel){
+  const m=eg.moves({square:esel,verbose:true}).find(x=>x.to==s);
+  if(m){
+   eg.move({from:esel,to:s,promotion:'q'});esel=null;en++;
+   if(enEnd())return;
+   enDraw();if(eg.in_check())say('كش! ✅');
+   ebusy=true;
+   setTimeout(()=>{const b=enBlack();if(b)eg.move(b);ebusy=false;if(enEnd())return;enDraw();if(eg.in_check())say('ملكك في كش! ⚠️')},700);
+   return;
+  }
+ }
+ esel=(pc&&pc.color=='w')?s:null;enDraw();
+}
+
+function opAuto(){
+ if(obusy)return;const mv=OP[oi][2].split(' ');
+ if(ostep>=mv.length||ostep%2)return;
+ const u=mv[ostep];og.move({from:u.slice(0,2),to:u.slice(2,4),promotion:'q'});ostep++;osel=null;ohint='';opAfter();
+}
+function opBack(){
+ if(obusy)return;
+ const k=ostep%2?1:2;if(ostep<k)return;
+ for(let i=0;i<k;i++)og.undo();
+ ostep-=k;osel=null;ohint='';olast=-1;oblk='';opDraw();
+}
+
+/* ---------- Stockfish ---------- */
+const SF={w:null,ready:false,off:false,q:Promise.resolve(),cur:null};
+const SFURL='https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js';
+const SL=[null,[0,100],[5,300],[12,600],[20,1200]];
+let evSF=null,hintSq='';
+function sfStatus(t){const e=$('sfst');if(e)e.textContent=t}
+function sfStart(){
+ const tries=[()=>new Worker('stockfish.js'),()=>new Worker(URL.createObjectURL(new Blob(["importScripts('"+SFURL+"')"],{type:'text/javascript'})))];
+ let ti=0;
+ const next=()=>{
+  if(ti>=tries.length){SF.off=true;sfStatus('⚙️ وضع مبسّط (Stockfish غير متاح الآن)');return}
+  let w;try{w=tries[ti++]()}catch(e){next();return}
+  let done=false;
+  const kill=()=>{if(!done){done=true;try{w.terminate()}catch(e){}next()}};
+  const tm=setTimeout(kill,20000);
+  w.onerror=()=>{clearTimeout(tm);kill()};
+  w.onmessage=ev=>{
+   const l=typeof ev.data=='string'?ev.data:'';
+   if(done)return;
+   if(l=='uciok')w.postMessage('isready');
+   if(l=='readyok'){done=true;clearTimeout(tm);SF.w=w;SF.ready=true;w.onerror=null;w.onmessage=sfMsg;sfStatus('🧠 Stockfish جاهز ✅')}
+  };
+  w.postMessage('uci');
+ };
+ next();
+}
+function sfMsg(ev){
+ const l=typeof ev.data=='string'?ev.data:'',c=SF.cur;
+ if(!c)return;
+ if(l.startsWith('info')&&l.includes(' score ')){
+  const m=l.match(/score (cp|mate) (-?\d+)/);
+  if(m)c.score=m[1]=='cp'?+m[2]:(+m[2]>0?1:-1)*(10000-Math.abs(+m[2])*10);
+ }else if(l.startsWith('bestmove')){
+  const b=l.split(' ')[1];SF.cur=null;c.res({best:b&&b!='(none)'?b:null,score:c.score||0});
+ }
+}
+function sfAsk(fen,o){
+ const p=SF.q.then(()=>new Promise(res=>{
+  if(!SF.ready){res({best:null,score:0});return}
+  SF.cur={res,score:0};
+  SF.w.postMessage('setoption name Skill Level value '+(o.skill==null?20:o.skill));
+  SF.w.postMessage('position fen '+fen);
+  SF.w.postMessage('go movetime '+(o.ms||300));
+  setTimeout(()=>{if(SF.cur&&SF.cur.res===res){SF.cur=null;res({best:null,score:0})}},(o.ms||300)+10000);
+ }));
+ SF.q=p.catch(()=>{});
+ return p;
+}
+function sfCpu(){
+ const L=SL[lvl];
+ sfAsk(g.fen(),{ms:L[1],skill:L[0]}).then(r=>{
+  if(!r.best){busy=false;return}
+  g.move({from:r.best.slice(0,2),to:r.best.slice(2,4),promotion:r.best[4]||'q'});
+  evSF=-r.score;busy=false;drawPlay();
+  const st=status();say(st||'دورك! 😊');
+ });
+}
+async function sfJudge(fenB,from,to){
+ const c=new Chess(fenB),bestP=sfAsk(fenB,{ms:200,skill:20});
+ c.move({from,to,promotion:'q'});
+ let as;
+ if(c.in_checkmate())as=10000;
+ else if(c.game_over())as=0;
+ else{const a=await sfAsk(c.fen(),{ms:200,skill:20});as=-a.score}
+ const b=await bestP;
+ const loss=Math.max(0,b.score-as),pct=Math.round(Math.max(0,100-loss/6));
+ const t=loss<30?'ممتازة ✅':loss<100?'جيدة 👍':loss<250?'غير دقيقة ⚠️':'غلطة ❌';
+ let tip='';
+ if(loss>=100&&b.best){try{const d=new Chess(fenB);const m=d.move({from:b.best.slice(0,2),to:b.best.slice(2,4),promotion:b.best[4]||'q'});if(m)tip='<br>الأفضل كان: <b>'+m.san+'</b>'}catch(e){}}
+ $('acc').innerHTML='دقة نقلتك: <b>'+pct+'%</b> '+t+tip;
+ if(!puz&&!two){evSF=as;renderSide()}
+}
+function sfHint(){
+ if(busy||g.game_over()||g.turn()!='w')return;
+ if(!SF.ready){say(SF.off?'النصيحة محتاجة Stockfish وهو غير متاح الآن.':'المحرّك لسه بيحمّل... جرّب بعد ثواني ⏳');return}
+ say('بفكّر... 🤔');
+ sfAsk(g.fen(),{ms:400,skill:20}).then(r=>{
+  if(!r.best)return;
+  sel=r.best.slice(0,2);hintSq=r.best.slice(2,4);drawPlay();
+  say('💡 جرّب القطعة المضيئة ثم النجمة ⭐');
+ });
+}
+sfStart();
+if('serviceWorker' in navigator&&location.protocol.indexOf('http')==0)navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+/* ---------- التبديل ---------- */
+function tab(n){['t1','t2','t3','t4','t5','t6'].forEach((id,i)=>$(id).className=i==n?'on':'')}
+$('t1').onclick=()=>{tab(0);choose(L.p)};
+$('t2').onclick=()=>{tab(1);newGame()};
+$('t3').onclick=()=>{tab(2);newPuz()};
+$('t4').onclick=()=>{tab(3);lessons()};
+$('t5').onclick=()=>{tab(4);openings()};
+$('t6').onclick=()=>{tab(5);endings()};
+
+choose('r');
+</script>
+</body>
+</html>
